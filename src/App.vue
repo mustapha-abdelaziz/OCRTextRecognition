@@ -1,30 +1,39 @@
 <template>
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">sdasdaeqe</router-link>
-  </div>
-  <router-view/>
+  <q-layout view="lHh Lpr lFf">
+    <q-header elevated>
+      <q-toolbar>
+        <q-toolbar-title>
+          OCR Text Recognition
+        </q-toolbar-title>
+
+        <div>Quasar v{{ $q.version }}</div>
+      </q-toolbar>
+    </q-header>
+
+    <q-page-container>
+      <router-view> </router-view>
+    </q-page-container>
+
+    <q-footer elevated>
+      <q-toolbar>
+        <q-toolbar-title>Footer</q-toolbar-title>
+      </q-toolbar>
+    </q-footer>
+  </q-layout>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import { ref } from "vue";
 
-#nav {
-  padding: 30px;
-}
+export default {
+  name: "LayoutDefault",
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
+  components: {},
 
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+  setup() {
+    return {
+      leftDrawerOpen: ref(false),
+    };
+  },
+};
+</script>
