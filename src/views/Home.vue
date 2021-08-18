@@ -4,7 +4,6 @@
       <q-card class="shadow">
         <q-tabs
           v-model="tab"
-          dense
           class="text-grey"
           active-color="primary"
           indicator-color="primary"
@@ -21,7 +20,7 @@
           <q-tab-panel name="imageUpload">
             <div
               class="q-gutter-md row items-center"
-              style="justify-content:center"
+              style="justify-content:center; margin: 1em 0"
             >
               <q-file
                 color="primary"
@@ -32,12 +31,13 @@
                 rounded
                 counter
                 use-chips
+                accept=".jpg, .pdf, image/*"
                 max-file-size="1048576"
                 :error="errorInput.isError"
                 :error-message="errorInput.errorMessage"
                 @rejected="onRejected"
                 @click="resetErr"
-                style="max-width: 500px; min-width: 600px"
+                style="width: 600px; margin-right:10px"
                 ref="uploadInput"
               >
                 <template v-slot:prepend>
@@ -57,24 +57,82 @@
                 </template>
               </q-file>
             </div>
-            <div class="row" style="justify-content:center">
+            <div v-if="textResult" class="row" style="justify-content:center">
               <q-input
                 v-model="textResult"
                 counter
                 standout
                 readonly
-                hide-bottom-space
+                autogrow
                 type="textarea"
                 style="min-width: 600px"
               >
                 <template v-slot:append>
-                  <q-btn><q-icon name="content_copy" /></q-btn>
+                  <q-btn flat @click="copyToClipboard">
+                    <q-icon name="content_copy" />
+                  </q-btn>
+                  <q-tooltip @hide="changeText">
+                    {{ tooltipText }}
+                  </q-tooltip>
                 </template>
               </q-input>
             </div>
           </q-tab-panel>
+          <!-- Second Tab -->
+          <q-tab-panel name="urlUpload">
+            <div
+              class="q-gutter-md row items-center"
+              style="justify-content:center; margin: 1em 0"
+            >
+              <q-input
+                color="primary"
+                v-model="linkUrl"
+                :loading="loading.isLoading"
+                dense
+                outlined
+                rounded
+                @click="resetErr"
+                style="width: 600px; margin-right:10px"
+                ref="uploadInput"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="insert_link" />
+                </template>
 
-          <q-tab-panel name="urlUpload"> </q-tab-panel>
+                <template v-slot:append>
+                  <q-btn
+                    :color="linkUrl ? 'primary' : 'grey'"
+                    :disable="linkUrl ? false : true"
+                    @click="submitUrl"
+                    round
+                    dense
+                    flat
+                    icon="file_upload"
+                  />
+                </template>
+              </q-input>
+            </div>
+            <div v-if="urlResult" class="row" style="justify-content:center">
+              <q-input
+                v-model="urlResult"
+                counter
+                standout
+                readonly
+                autogrow
+                type="textarea"
+                style="min-width: 600px"
+              >
+                <template v-slot:append>
+                  <q-btn flat @click="copyToClipboard">
+                    <q-icon name="content_copy" />
+                  </q-btn>
+                  <q-tooltip @hide="changeText">
+                    {{ tooltipText }}
+                  </q-tooltip>
+                </template>
+              </q-input>
+            </div>
+          </q-tab-panel>
         </q-tab-panels>
       </q-card>
     </div>
@@ -88,8 +146,9 @@ export default {
   data() {
     return {
       tab: "imageUpload",
-      splitterModel: 20,
       fileUpload: null,
+      linkUrl: null,
+      urlResult: null,
       loading: {
         isLoading: false,
         loadingColor: "primary",
@@ -99,6 +158,8 @@ export default {
         errorMessage: "",
       },
       textResult: null,
+      showTooltip: false,
+      tooltipText: "Copy to Clipboard",
     };
   },
   mounted() {
@@ -107,6 +168,12 @@ export default {
     }, 1000);
   },
   methods: {
+    changeText() {
+      this.tooltipText = "Copy to Clipboard";
+    },
+    testLog() {
+      console.log("clicked");
+    },
     submitImage() {
       this.loading.isLoading = true;
       const formData = new FormData();
@@ -136,12 +203,39 @@ export default {
           this.loading.isLoading = false;
         });
     },
+
+    ///////////////////////////////////
+    submitUrl() {
+      this.loading.isLoading = true;
+      const Url =
+        "https://api.ocr.space/parse/imageurl?apikey=1f293d399788957&url=" +
+        this.linkUrl;
+
+      fetch(Url)
+        .then((res) => {
+          return res.json();
+        })
+        .then((result) => {
+          let txtRusult = result.ParsedResults[0];
+          this.urlResult = txtRusult.ParsedText;
+          console.log(result);
+          this.loading.isLoading = false;
+        })
+        .catch((err) => {
+          console.log(222222, err);
+          this.loading.isLoading = false;
+        });
+    },
     onRejected() {
       this.errorInput.errorMessage = "Maximum file size 1 MB";
       this.errorInput.isError = true;
     },
     resetErr() {
       this.errorInput.isError = false;
+    },
+    copyToClipboard() {
+      navigator.clipboard.writeText(this.textResult);
+      this.tooltipText = "Copied";
     },
   },
 };
